@@ -1,0 +1,60 @@
+
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'jetty'
+apply plugin: 'application'
+
+applicationName = 'statsd'
+
+applicationDefaultJvmArgs = ["-Dlogback.configurationFile=etc/statsd/logging.xml"]
+
+sourceCompatibility = 1.8
+version = '1.0'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+task runSpark(type: JavaExec, dependsOn: 'classes') {
+    main = "com.example.SparkApp"
+    classpath = sourceSets.main.runtimeClasspath
+
+}
+
+
+dependencies {
+
+    compile group: 'io.advantageous.qbit', name: 'qbit-admin', version: '0.8.10'
+
+    compile group: 'io.advantageous.qbit', name: 'qbit-core', version: '0.8.9'
+
+    //logback dependencies
+    compile 'ch.qos.logback:logback-core:1.1.3'
+    compile 'ch.qos.logback:logback-classic:1.1.3'
+    compile 'org.slf4j:slf4j-api:1.7.12'
+}
+
+//Install/copy tasks
+task copyDist(type: Copy) {
+    dependsOn "installApp"
+    from "$buildDir/install/statsd"
+    into 'opt/statsd'
+}
+
+task copyLog(type: Copy) {
+    from "src/main/resources/logback.xml"
+    into "etc/statsd/"
+}
+
+
+task copyLogToImage(type: Copy) {
+    from "src/main/resources/logback.xml"
+    into "image-todo-cass/etc"
+}
+task copyDistToImage(type: Copy) {
+    dependsOn "installApp"
+    from "$buildDir/install/statsd"
+    into "$projectDir/image-todo-cass/opt/todocass"
+}
+
